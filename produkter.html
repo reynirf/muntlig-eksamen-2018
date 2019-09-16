@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="assets/lib/bootstrap.css">
+  <script src="assets/lib/jquery.js"></script>
+  <script type="text/javascript" src="assets/lib/bootstrap.js"></script>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Produkter</title>
+	<script>
+		const varer = []
+		let sortType = 'default'
+		let category = 'alle-produkter'
+		let jumbotronTittel = undefined;
+		let jumbotronDescription = undefined;
+		var handlekurven = [];
+		//json https get request til å hente spørsmål og svar
+		
+
+		//onbodyload
+		window.onload = () => {
+			handlekurven = JSON.parse(localStorage.getItem('handlekurven'));
+			if(handlekurven === null) handlekurven = [];
+			if(handlekurven.length > 0) $('#antallProdukter').text(handlekurven.length)
+			console.log(handlekurven)
+			jumbotronTittel = document.querySelector("#jumbotronTittel");
+			jumbotronDescription = document.querySelector("#jumbotronDescription");
+			$.getJSON("varer.json", (data) => {
+				$.each(data[0].categories, function(i, val) {
+					varer.push(val);
+				});
+			})
+
+			//init
+			setTimeout(() => {
+
+			let initArr = [];
+			varer.forEach((produkt) => {
+				for(let i in produkt){
+					initArr.push(produkt[i]);
+				}
+			})
+			setProducts(initArr)
+		},100)
+			
+       		$('#sok').keyup(function (e) { 
+       			searchEngine(e.target.value)
+       		});	    	
+		}
+
+
+		let searchEngine = (e) => {
+			let hits = [];
+			varer.forEach(function(produkt) {
+				for(let i in produkt){
+					let produktNavn = produkt[i].navn.toLowerCase();
+					//produktNavn = produktNavn.split('')
+					if(produktNavn.includes(e.toLowerCase())){
+						hits.push(produkt[i])
+					}
+				}
+			})
+			console.log(hits)
+			setProducts(hits, e);
+		}
+
+
+		let setProducts = (arr, search) => {
+			sortIt(arr, sortType)
+			console.log(filterByCategory(arr, category))
+			arr = filterByCategory(arr, category)
+			if(arr.length > 0){
+				console.log(arr)
+				var e = document.getElementById('varer');
+				e.innerHTML = ''
+				let antallRow = Math.round(arr.length / 3);
+				if(arr.length <= 3) antallRow = 1;
+				console.log(antallRow)
+				let indeks = 0;
+				let produktIndeks = 3;
+				let start = true;
+			       for(var i = 0; i < antallRow; i++){
+			       	var row = document.createElement("div"); 
+			       	row.className = "row"; 
+			       	if(start !== true){
+						produktIndeks+=3;
+			       		indeks+=3;
+			       	} else start = false;
+			        if(arr.length <= 3) produktIndeks = arr.length;
+			       	for(var x = indeks; x<produktIndeks; x++){
+			       		if(x >= arr.length){
+			       			break;
+			       		}
+			       		console.log(x)
+			       		//col
+			       		var col = document.createElement("div"); 
+			            col.className = "item col"; 
+			            row.appendChild(col); 
+
+			            //thumbnail
+			            var thumbnail = document.createElement("div");
+			            thumbnail.className = "thumbnail"; 
+			            col.appendChild(thumbnail); 
+
+			            //bilde
+			           // console.log('x', x)
+			            let img = document.createElement('img')
+			            img.className = 'group list-group-image';
+			            img.src = `assets/imgs/produkter/${arr[x].kategori}/${arr[x].bilde}.png`;
+			            img.alt = arr[x].navn;
+			            img.style.width = '50%';
+			            thumbnail.appendChild(img);
+
+			            //caption
+			            var caption = document.createElement("div");
+			            caption.className = "caption"; 
+			            thumbnail.appendChild(caption);
+
+			            //produktnavn
+			            var title = document.createElement("h4");
+			            title.className = "group inner list-group-item-heading"; 
+			      		title.innerText = arr[x].navn; 
+			   			title.style.fontSize = '1em';
+			   			title.style.fontWeight = 'bold'
+
+			            caption.appendChild(title);
+
+			            //beskrivelse
+			            var description = document.createElement("p");
+			            description.className = "group inner list-group-item-text";
+			            description.style.fontSize = '1em';
+			            description.innerText = arr[x].beskrivelse; 
+			            caption.appendChild(description);
+
+			            //indre-row
+						var indreRow = document.createElement("div");
+			            indreRow.className = "row";
+			            caption.appendChild(indreRow);
+
+			            //pris-div
+						var prisDiv = document.createElement("div");
+			            prisDiv.className = "col-xs-12 col-md-6";
+			            indreRow.appendChild(prisDiv);		
+
+			             //pris
+			            var pris = document.createElement("p");
+			            pris.className = "lead";
+			            pris.innerText = arr[x].pris + ' NOK'; 
+			            prisDiv.appendChild(pris);
+
+			            //add-to-cart-div
+						var buyDiv = document.createElement("div");
+			            buyDiv.className = "col-xs-12 col-md-6";
+			            indreRow.appendChild(buyDiv);		
+
+			            //add-to-cart
+			            var buy = document.createElement("a");
+			            buy.className = "btn btn-primary";
+			            let buyIndeks = x;
+			            buy.onclick = () => {
+			            	addToCart(arr[buyIndeks])
+			            }
+			            buy.innerText = 'Legg i handlekurv';
+			            buy.style.float = 'right';
+			            buy.style.color = 'white'
+			            buyDiv.appendChild(buy);	       
+			        } 
+			       e.appendChild(row); 
+			       if(arr.length < 3) addDummy(3-arr.length, row)
+			   } 
+			} else {
+				$('#varer').html(`<h3>Søk etter "${search}" returnerte 0 treff</h3>`)
+			}
+		}
+        
+
+       	function addToCart(produkt) {
+       		$("#modalProduktNavn").text(produkt.navn)
+       		$("#handlekurv").modal('show')
+       		if(handlekurven.length === 0) handlekurven.push(produkt)
+       		else if(containsObjekt(produkt, handlekurven) === false) handlekurven.push(produkt)
+
+       		localStorage.setItem('handlekurven', JSON.stringify(handlekurven))
+
+       		$('#antallProdukter').text(handlekurven.length)
+       	}
+
+		function containsObjekt(obj, list) {
+		    for (let i in list) {
+		    	console.log(list[i].navn)
+		    	console.log(obj.navn)
+		        if (list[i].navn == obj.navn) {
+		            return true;
+		        }
+		    }
+		    return false;
+		}
+
+       	let closeModal = (type) => {
+       		$("#handlekurv").modal('hide')
+       	}
+       	let endreSortType = (type) => {
+       		sortType = type;
+       		searchEngine(document.querySelector('#sok').value)
+       	}	
+
+       	let endreKategori = (kategori) => {
+       		category = kategori;
+       		searchEngine(document.querySelector('#sok').value)
+       	}
+
+       	let sortIt = (arr, type) => {
+       		switch(type){
+       			case 'a-aa':
+	   			arr.sort((a,b) => {
+	   				 var navnA = a.navn.toLowerCase(), navnB = b.navn.toLowerCase();
+					 if (navnA < navnB)
+					  return -1;
+					 if (navnA > navnB)
+					  return 1;
+					 return 0; 
+       			}) 
+       			break;
+       			case 'aa-a': 
+       			arr.sort((a,b) => {
+	   				 var navnA = a.navn.toLowerCase(), navnB = b.navn.toLowerCase();
+					 if (navnA > navnB)
+					  return -1;
+					 if (navnA < navnB)
+					  return 1;
+					 return 0; 
+       			}) 
+       			break;
+       			case 'lavest': return arr.sort((a,b) => a.pris - b.pris)
+       			break;
+       			case 'hoyest': return arr.sort((a,b) => b.pris - a.pris)
+       			break;
+       			case 'default': return;
+       			break;
+       		}
+       	}
+
+       	let filterByCategory = (arr, category) => {
+       		console.log(arr, category)
+       		switch(category){
+       			case 'annet': 
+       			jumbotronTittel.innerText = "Andre produkter";jumbotronDescription.innerText = "I tilegg til skismjøring, selger vi også andre produkter. Blant dem er drikkeflasker og skibager";
+
+       			return arr.filter(produkt => produkt.kategori === category)
+       			break;
+       			case 'skismor': 
+       			jumbotronTittel.innerText = "Skismøring";
+       			jumbotronDescription.innerText = "Skismøringsproduktene som vi selger er de beste på markedet. Skismjøring er bra for alle som liker å gå på ski";
+       			return arr.filter(produkt => produkt.kategori === category)
+       			break;
+       			case 'alle-produkter': 
+       			jumbotronTittel.innerText = "Produkter";
+       			jumbotronDescription.innerText = "Vi selger ulike produkter, og blant dem finner du skismøringer, skibager og drikkeflasker"
+       			return arr;
+       			break;
+       		}
+       	}
+
+       	let addDummy = (antall, row) => {
+       		for(let i = 0;i<antall;i++){
+       		var col = document.createElement("div"); 
+			            col.className = "item col"; 
+			            row.appendChild(col); 
+
+			            //thumbnail
+			            var thumbnail = document.createElement("div");
+			            thumbnail.className = "thumbnail"; 
+			            col.appendChild(thumbnail); 
+
+			            //bilde
+			            let img = document.createElement('img')
+			            img.className = 'group list-group-image';
+			            img.src = `assets/imgs/produkter/annet/1.png`;
+			            img.alt = '';
+			            img.style.width = '50%';
+			           	img.style.visibility = 'hidden' 
+			            thumbnail.appendChild(img);
+
+			            //caption
+			            var caption = document.createElement("div");
+			            caption.className = "caption"; 
+			            thumbnail.appendChild(caption);
+
+			            //produktnavn
+			            var title = document.createElement("h4");
+			            title.className = "group inner list-group-item-heading"; 
+			      		title.innerText = 'testtttttttt'; 
+			      		title.style.visibility = 'hidden' 
+			   			title.style.fontSize = '1em';
+			   			title.style.fontWeight = 'bold'
+
+			            caption.appendChild(title);
+
+			            //beskrivelse
+			            var description = document.createElement("p");
+			            description.className = "group inner list-group-item-text";
+			            description.style.fontSize = '1em';
+			            description.innerText = 'tkeoatkoea kotekoat koea teakotk oea oktea kot';
+						description.style.visibility = 'hidden' 
+			            caption.appendChild(description);
+
+			            //indre-row
+						var indreRow = document.createElement("div");
+			            indreRow.className = "row";
+			            caption.appendChild(indreRow);
+
+			            //pris-div
+						var prisDiv = document.createElement("div");
+			            prisDiv.className = "col-xs-12 col-md-6";
+			            indreRow.appendChild(prisDiv);		
+
+			             //pris
+			            var pris = document.createElement("p");
+			            pris.className = "lead";
+			            pris.innerText = '100' + ' NOK'; 
+			          	pris.style.visibility = 'hidden'
+
+			            prisDiv.appendChild(pris);
+
+			            //add-to-cart-div
+						var buyDiv = document.createElement("div");
+			            buyDiv.className = "col-xs-12 col-md-6";
+			            indreRow.appendChild(buyDiv);		
+
+			            //add-to-cart
+			            var buy = document.createElement("a");
+			            buy.className = "btn btn-success";
+			            buy.innerText = 'Kjøpe'; 
+			            buy.style.color = 'white'
+			            buy.style.visibility = 'hidden'
+			            buyDiv.appendChild(buy);	  
+			 }    
+       	}
+	</script>
+</head>
+<body>
+	<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="#"><img src="assets/imgs/logo.png"></a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="index.html">Hjem <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="produkter.html">
+          Produkter
+        </a>
+      </li>
+
+    </ul>
+    <ul class="navbar-nav">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Sort
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a onclick="endreSortType('a-aa')" class="dropdown-item">A-Å</a>
+          <a onclick="endreSortType('aa-a')" class="dropdown-item">Å-A</a>
+          <a onclick="endreSortType('hoyest')" class="dropdown-item">Høyest pris</a> 
+          <a onclick="endreSortType('lavest')" class="dropdown-item">Lavest pris</a>          
+        </div>
+      </li><li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Kategori
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a onclick="endreKategori('skismor')" class="dropdown-item">Skismøring</a>
+          <a onclick="endreKategori('annet')" class="dropdown-item">Annet</a>
+          <hr>
+          <a onclick="endreKategori('alle-produkter')" class="dropdown-item">Alle produkter</a>
+        </div>
+      </li>
+    </ul>
+    </div>
+    <div class="form-inline my-2 my-lg-0">
+      <input id="sok" class="form-control mr-sm-2" type="search" placeholder="Søk produkter" aria-label="Search">
+      <!-- <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Søk</button> -->
+    </div>
+    <a href="cart.html"><span id="antallProdukter"></span><img class="handlekurve" src="assets/imgs/cart.png"></a>
+  </div>
+</nav>
+<div class="container-fluid">
+  <div class="jumbotron">
+  	<img class="ski-bilde" src="assets/imgs/skiing-man.png">
+    <h1 id="jumbotronTittel">Produkter</h1> 
+    <p id="jumbotronDescription">Vi selger ulike produkter, og blant dem finner du skismøringer, skibager og drikkeflasker</p> 
+  </div>
+  <div id="varer">
+  	
+</div>
+  </div>
+
+
+</div> <!-- container -->
+</div>
+<div id="handlekurv" class="modal fade" role="dialog">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 id="modalProduktNavn"></h4>
+				<a href="#" data-dismiss="modal">x</a>
+			</div>
+			<div class="modal-body">
+				<p style="text-align:center">Vil du fortsette å handle eller gå til handlekurv?</p>
+				<div class="valgmuligheter">
+					<a onclick="closeModal()" class="btn btn-danger btn-sm" href="#">Fortsette å handle</a>
+					<a class="btn btn-success btn-sm" href="cart.html">Gå til handlekurv</a>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<a href="#" data-dismiss="modal">Lukk</a>
+			</div>
+		</div>
+	</div>
+</div> 
+<style>
+/*.jumbotron { background:-webkit-linear-gradient(to right, #1f3f7f, #2f5fbf); }*/
+.jumbotron { 
+	color:white;
+	background:linear-gradient(to right, #1f3f7f, #2f5fbf);
+}
+.handlekurve {
+	width:30px;
+}
+.ski-bilde {
+	float:right;
+	width:15%;
+}
+.valgmuligheter a {
+	color:white;
+}
+.valgmuligheter {
+	text-align: center;
+}
+</style>
+</body>
+</html>

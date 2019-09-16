@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="assets/lib/bootstrap.css">
+  <script src="assets/lib/jquery.js"></script>
+  <script type="text/javascript" src="assets/lib/bootstrap.js"></script>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Takk for kjøpet!</title>
+</head>
+<body>
+	<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="#"><img src="assets/imgs/logo.png"></a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="index.html">Hjem <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="produkter.html">
+          Produkter
+        </a>
+      </li>
+
+    </ul>
+    </div>
+    <a href="cart.html"><span id="antallProdukter"></span><img class="handlekurve" src="assets/imgs/cart.png"></a>
+  </div>
+</nav>
+<div class="container-fluid">
+  <div class="jumbotron">
+  	<img class="ski-bilde" src="assets/imgs/skiing-man.png">
+    <h1 id="jumbotronTittel">Takk for kjøpet!</h1> 
+    <p style="visibility:hidden" id="jumbotronDescription">Vi selger ulike produkter, og blant dem finner du skismøringer, skibager og drikkeflasker</p>
+  </div><br><br>
+  <div style="width:100%">
+  	<h1 style="text-align:center">Tusen takk for kjøpet<br><a href="produkter.html" class="btn btn-primary btn-lg">Handle videre</a></h1>
+  </div>
+</div>
+<style>
+.jumbotron { 
+	margin:0;
+	color:white;
+	background:linear-gradient(to right, #1f3f7f, #2f5fbf);
+}
+.handlekurve {
+	width:30px;
+}
+.ski-bilde {
+	float:right;
+	width:15%;
+}
+.lineUnderJumbotron {
+	background:rgba(0,0,0,0.1);
+	width:100%;
+	margin-bottom:1em;
+	padding:0.7em;
+}
+.lineUnderJumbotron h4 {
+	display:inline-block;
+}
+.rabatt {
+	display:inline-block;
+	float:right;
+}
+#kostnad {
+	font-weight:bold;
+}
+a.disabled {
+   pointer-events: none;
+   cursor: default;
+}
+
+</style>
+</body>
+</html>

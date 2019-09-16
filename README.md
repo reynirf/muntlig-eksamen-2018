@@ -1,1 +1,2 @@
-# muntlig-eksamen-2018-
+# Muntlig eksamen i IT året 2018
+Lillehammer VGS 

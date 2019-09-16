@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="assets/lib/bootstrap.css">
+  <script src="assets/lib/jquery.js"></script>
+  <script type="text/javascript" src="assets/lib/bootstrap.js"></script>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Handlekurve</title>
+	<script>
+		const varer = []
+		let rabattKode = "";
+		let jumbotronTittel = undefined;
+		let jumbotronDescription = undefined;
+		var handlekurven = [];
+		let rabattAktivert = false;
+		let kostnad = 0;
+
+		//onbodyload
+		window.onload = () => {
+			let rabattKoder = [];
+			$.getJSON("rabattKoder.json", function(data){
+				  rabattKoder = data[0].rabattKoder;
+			});
+			handlekurven = JSON.parse(localStorage.getItem('handlekurven'));
+			if(handlekurven === null) handlekurven = [];
+			setProducts(handlekurven)
+
+			document.querySelector('#gaaTilBetaling').onclick = () => {
+				let kostnad = finneKostnad(handlekurven)
+				$('#kostnadBetaling').text(kostnad + ' NOK')
+				$('#betaling').modal('show')
+			}
+			document.getElementById('aktivereRabatt').onclick = () => {
+				aktivereRabatt(rabattKoder)
+			}	
+    	
+		}
+
+
+		let aktivereRabatt = (rabattKoder) => {
+			let input = document.querySelector('#rabatt').value;
+			if(rabattKoder.indexOf(input) > -1){
+				let indeks = rabattKoder.indexOf(input);
+				rabattKoder.splice(indeks, 1);
+				console.log(rabattKoder)
+				rabattAktivert = true;
+				document.querySelector('#rabatt').disabled = true;
+				document.querySelector('#aktivereRabatt').onclick = false;
+				document.querySelector('#aktivereRabatt').className = 'disabled btn btn-primary';
+				document.querySelector('#rabatt').style.border = 'solid 2px green';
+				setTimeout(() => {
+					document.querySelector('#rabatt').style.border = 'solid 1px #ced4da';
+					document.querySelector('#rabatt').value = '30% rabatt aktivert';
+				}, 2000)
+				setProducts(handlekurven)
+			} else {
+				document.querySelector('#rabatt').style.border = 'solid 2px red';
+				setTimeout(() => {
+					document.querySelector('#rabatt').style.border = 'solid 1px #ced4da';
+				}, 2000)
+			}
+
+		}
+
+		let setProducts = (arr) => {
+			let onList = [];
+			if(arr.length > 0){
+				$('#antallProdukter').text(handlekurven.length)
+				var e = document.getElementById('varer');
+				e.innerHTML = ''
+			       	for(var x = 0; x < arr.length; x++){
+			       	  if(onList.indexOf(arr[x].navn) === -1){
+			       		onList.push(arr[x].navn);
+			       		//col
+			       		var col = document.createElement("div"); 
+			            col.className = "item col"; 
+
+			            //thumbnail
+			            var thumbnail = document.createElement("div");
+			            thumbnail.className = "thumbnail"; 
+			            thumbnail.style.position = 'absolute';
+			            thumbnail.style.marginLeft = '2em';
+			            col.appendChild(thumbnail); 
+
+						var amountDiv = document.createElement("div");
+						amountDiv.style.display = 'inline-block';
+						amountDiv.style.marginTop = '2.6em'
+			            col.appendChild(amountDiv); 
+
+
+			            let indeks = x;
+			            var add = document.createElement("p");
+			      		add.innerText = '+'; 
+			      		add.style.cursor = 'pointer';
+			   			add.style.fontSize = '1em';
+			   			add.style.border = 'solid 1px gray';
+			   				console.log(arr[x].navn)
+
+			   			add.onclick = () => {
+							addToKurve(arr[indeks])			   	
+			   			}
+			   			add.style.padding = '0.3em 0.6em';
+			            amountDiv.appendChild(add);
+
+			            var antall = document.createElement("p");
+			      		antall.innerText = handlekurven.filter(verdi => verdi.navn === arr[x].navn).length;
+			   			antall.style.fontSize = '1em';
+			   			antall.style.border = 'solid 1px gray';
+			   			antall.style.padding = '0.3em 0.6em';
+			            amountDiv.appendChild(antall);
+
+			            var remove = document.createElement("p");
+			      		remove.innerText = '-'; 
+			      		remove.style.cursor = 'pointer';
+			   			remove.style.fontSize = '1em';
+			   			remove.style.border = 'solid 1px gray';
+			   			remove.onclick = () => {
+			   				removeFromKurve(arr[indeks])			   	
+			   			}
+			   			remove.style.padding = '0.3em 0.6em';
+			            amountDiv.appendChild(remove);
+						
+
+			            //bilde
+			            let img = document.createElement('img')
+			            img.src = `assets/imgs/produkter/${arr[x].kategori}/${arr[x].bilde}.png`;
+			            img.alt = arr[x].navn;
+			            img.style.width = '15%';
+						img.style.display = 'inline-block';
+			            thumbnail.appendChild(img);
+
+			            //caption
+			            var caption = document.createElement("div");
+			            caption.className = "caption";
+			            caption.style.width = '80%'
+			            caption.style.display = 'inline-block';
+			            thumbnail.appendChild(caption);
+						
+						//prisdiv
+						var prisDiv = document.createElement("div");
+			            prisDiv.className = "col-xs-12 col-md-12";
+			            caption.appendChild(prisDiv);		
+
+			            //pris
+			            var pris = document.createElement("p");
+			            pris.className = "lead";
+			            pris.style.float = 'right';
+			            pris.style.fontWeight = 'bold'
+			            if(rabattAktivert === true) pris.innerText = Math.floor((arr[x].pris*0.7)) + ' NOK';
+			           	else pris.innerText = arr[x].pris + ' NOK'; 
+
+			            prisDiv.appendChild(pris);
+
+			            //produktnavn
+			            var title = document.createElement("h4");
+			      		title.innerText = arr[x].navn; 
+			   			title.style.fontSize = '1em';
+			   			title.style.fontWeight = 'bold'
+			            caption.appendChild(title);
+
+			            //beskrivelse
+			            var description = document.createElement("p");
+			            description.style.fontSize = '1em';
+			            description.innerText = arr[x].beskrivelse; 
+			            caption.appendChild(description);
+
+			            //append-produktet
+			          	e.appendChild(col); 
+			          	let hr = document.createElement('hr')
+			          	hr.style.marginTop = '2em';
+			          	e.appendChild(hr)
+			          }
+			        } 
+			        updateOverview(arr);
+			} else {
+				$('#varer').html(`<h3>Ingen produkter i handlekurven (<a href="produkter.html">Gå tilbake</a>)</h3>`)
+				$("#kostnad").text("0")
+				$("#antallProdukter").text("")
+			}
+		}
+       
+       let updateOverview = (arr) => {
+       	kostnad = finneKostnad(arr);
+       	$('#kostnad').text(`${kostnad} NOK (${arr.length} varer)`)
+       }
+
+       let finneKostnad = (arr) => {
+       	if(rabattAktivert === true) {
+       	 	return arr.reduce((a,b) => {
+       			return a+Math.floor((b.pris*0.7))
+       		},0)
+       	 } else {
+			return arr.reduce((a,b) => {
+       			return a+b.pris
+       		},0)
+       	 }
+       }
+
+       let removeFromKurve = (produkt) => {
+       	let index = handlekurven.indexOf(produkt)
+       	console.log(index)
+       	handlekurven.splice(index, 1)
+        localStorage.setItem('handlekurven', JSON.stringify(handlekurven));
+        setProducts(handlekurven)
+       }
+       let addToKurve = (produkt) => {
+       	console.log(produkt)
+       	handlekurven.push(produkt)
+       	localStorage.setItem('handlekurven', JSON.stringify(handlekurven));
+       	setProducts(handlekurven)
+       }
+
+       let clearHandlekurve = () => {
+			localStorage.clear();
+       }
+	</script>
+</head>
+<body>
+	<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="#"><img src="assets/imgs/logo.png"></a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="index.html">Hjem <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="produkter.html">
+          Produkter
+        </a>
+      </li>
+
+    </ul>
+    </div>
+    <a href="cart.html"><span id="antallProdukter"></span><img class="handlekurve" src="assets/imgs/cart.png"></a>
+  </div>
+</nav>
+<div class="container-fluid">
+  <div class="jumbotron">
+  	<img class="ski-bilde" src="assets/imgs/skiing-man.png">
+    <h1 id="jumbotronTittel">Handlekurv</h1> 
+    <p style="visibility:hidden" id="jumbotronDescription">Vi selger ulike produkter, og blant dem finner du skismøringer, skibager og drikkeflasker</p>
+  </div>
+  <div class="lineUnderJumbotron">
+  	<h4>Totalt: <span id="kostnad">0</span></h4> <a id="gaaTilBetaling" href="#" style="margin-bottom:0.5%" class="btn btn-primary btn-sm">Gå til betaling</a>
+  	<div class="form-inline my-2 my-lg-0 rabatt"><input id="rabatt" class="form-control mr-sm-2" type="text" placeholder="Rabattkode"><a class="btn btn-primary" id="aktivereRabatt" href="#">Aktiver</a></div>
+  </div>
+  <div id="varer">
+  	
+  </div>
+
+
+</div>
+</div>
+<div id="betaling" class="modal fade" role="dialog">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h3>Betaling - <span id="kostnadBetaling">0</span></h3>
+				<a href="#" data-dismiss="modal">x</a>
+			</div>
+			<div class="modal-body">
+				<div class="panel panel-default credit-card-box">
+                <div class="panel-heading display-table" >
+                    <div class="row display-tr" >
+                        <h3 class="panel-title display-td" >Betaling med kort</h3>
+                        <div class="display-td" >                            
+                            <img class="img-responsive pull-right" src="http://i76.imgup.net/accepted_c22e0.png">
+                        </div>
+                    </div>                    
+                </div>
+                <div class="panel-body">
+                    <form role="form" id="payment-form" method="POST" action="javascript:void(0);">
+                        <div class="row">
+                            <div class="col-xs-12 col-md-12">
+                                <div class="form-group">
+                                    <label for="cardNumber">Kortnummer</label>
+                                    <div class="input-group">
+                                        <input 
+                                            type="tel"
+                                            class="form-control"
+                                            name="cardNumber"
+                                            placeholder="kortnummer..."
+                                            required autofocus 
+                                        />
+                                        <span class="input-group-addon"><i class="fa fa-credit-card"></i></span>
+                                    </div>
+                                </div>                            
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-7 col-md-7">
+                                <div class="form-group">
+                                    <label for="cardExpiry"><span class="visible-xs-inline">Utløpsdato</span></label>
+                                    <input 
+                                        type="tel" 
+                                        class="form-control" 
+                                        name="cardExpiry"
+                                        placeholder="mm / åååå"
+                                        autocomplete="false"
+                                        required 
+                                    />
+                                </div>
+                            </div>
+                            <div class="col-xs-5 col-md-5 pull-right">
+                                <div class="form-group">
+                                    <label for="cardCVC">CVC-nummer</label>
+                                    <input 
+                                        type="tel" 
+                                        class="form-control"
+                                        name="cardCVC"
+                                        placeholder="CVC"
+                                        autocomplete="false"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12 col-md-12">
+                                <a href="takk.html" onclick="clearHandlekurve()" class="subscribe btn btn-primary btn-lg btn-block">Betal</a>
+                            </div>
+                        </div>
+                        <div class="row" style="display:none;">
+                            <div class="col-xs-12">
+                                <p class="payment-errors"></p>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>   
+
+			</div>
+			<div class="modal-footer">
+				<a href="#" data-dismiss="modal">Lukk</a>
+			</div>
+		</div>
+	</div>
+</div> 
+<style>
+.jumbotron { 
+	margin:0;
+	color:white;
+	background:linear-gradient(to right, #1f3f7f, #2f5fbf);
+}
+.handlekurve {
+	width:30px;
+}
+.ski-bilde {
+	float:right;
+	width:15%;
+}
+.lineUnderJumbotron {
+	background:rgba(0,0,0,0.1);
+	width:100%;
+	margin-bottom:1em;
+	padding:0.7em;
+}
+.lineUnderJumbotron h4 {
+	display:inline-block;
+}
+.rabatt {
+	display:inline-block;
+	float:right;
+}
+#kostnad {
+	font-weight:bold;
+}
+a.disabled {
+   pointer-events: none;
+   cursor: default;
+}
+
+
+.credit-card-box .panel-title {
+    display: inline;
+    font-weight: bold;
+}
+.credit-card-box .form-control.error {
+    border-color: red;
+    outline: 0;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba(255,0,0,0.6);
+}
+.credit-card-box label.error {
+  font-weight: bold;
+  color: red;
+  padding: 2px 8px;
+  margin-top: 2px;
+}
+.credit-card-box .payment-errors {
+  font-weight: bold;
+  color: red;
+  padding: 2px 8px;
+  margin-top: 2px;
+}
+.credit-card-box label {
+    display: block;
+}
+.credit-card-box .display-table {
+    display: table;
+}
+.credit-card-box .display-tr {
+    display: table-row;
+}
+.credit-card-box .display-td {
+    display: table-cell;
+    vertical-align: middle;
+    width: 50%;
+}
+.credit-card-box .panel-heading img {
+    min-width: 180px;
+}
+
+</style>
+</body>
+</html>

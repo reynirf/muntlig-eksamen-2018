@@ -1,0 +1,73 @@
+[
+    {
+        "categories": {
+            "skismor": {
+                "1": {
+                    "navn": "K21S Uni Silver Klister 3C to -5C",
+                    "beskrivelse": "Universal sølvklister, passer forhold fra +3°C til -5°C. For tur og racing løpere, gir suverent feste.",
+                    "pris": 129,
+                    "kategori": "skismor",
+                    "bilde": "1"
+                },
+                "2": {
+                    "navn": "K22 Uni VM Klister -3C to 10C",
+                    "beskrivelse": "Swix' klassiske VM-klister. Passer forhold fra +10°C til -3°C. For tur og racing løpere, gir suverent feste.",
+                    "pris": 129,
+                    "kategori": "skismor",
+                    "bilde": "2"
+                },
+                "3": {
+                    "navn": "K65C Uni quick klister ,150m",
+                    "beskrivelse": "Hurtigklister med applikator. Passer forhold fra -5°C til +10°C. For de som vil ha det enkelt, rask pålegging uten noe søl.",
+                    "pris": 149,
+                    "kategori": "skismor",
+                    "bilde": "3"
+                },
+                "4": {
+                    "navn": "K70C Red quick klister, 150ml",
+                    "beskrivelse": "Hurtigklister med applikator. Passer forhold fra 0°C til +15°C. Lett å legge på, rask pålegging uten søl.",
+                    "pris": 149,
+                    "kategori": "skismor",
+                    "bilde": "4"
+                },
+                "5": {
+                    "navn": "KN33 Universal Racing Klister, 55g",
+                    "beskrivelse": "Klister for deg som trener og konkurrerer.",
+                    "pris": 299,
+                    "kategori": "skismor",
+                    "bilde": "5"
+                },
+                "6": {
+                    "navn": "KB20-150C Base klister spray, 150ml",
+                    "beskrivelse": "Genialt grunnklister på spray. Underlag for alle klistre. Enkelt og veldig bra resultat.",
+                    "pris": 299,
+                    "kategori": "skismor",
+                    "bilde": "6"
+                }
+            },
+            "annet": {
+                "1": {
+                    "navn": "Drikkeflaske",
+                    "beskrivelse": "0.7l drikkeflaske, til trening og fritid, kommer i flere farger",
+                    "pris": 49,
+                    "kategori": "annet",
+                    "bilde": "1"
+                },
+                "2": {
+                    "navn": "Race X bag",
+                    "beskrivelse": "Meget lett, og teknisk sekk. Den perfekte sekken til Birkebeinerrennet",
+                    "pris": 999,
+                    "kategori": "annet",
+                    "bilde": "2"
+                },
+                "3": {
+                    "navn": "Skibag med 2 hjul",
+                    "beskrivelse": "Skipose tilpasset skilengder fra 180cm til 215cm",
+                    "pris": 1499,
+                    "kategori": "annet",
+                    "bilde": "3"
+                }
+            }
+        }
+    }
+]
